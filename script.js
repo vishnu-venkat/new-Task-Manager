@@ -1,4 +1,4 @@
-import { createTask } from './task.js';
+import {createTask} from './task.js';
 
 // const tasks = [];
 // get the element of the form
@@ -33,6 +33,7 @@ function populateTasks() {
     // store the initial tasks in local storage
     setTasks(tasks);
 }
+
 // get tasks from local storage and render tasks on UI
 function displayTasks(filterBy) {
     const taskContainer = document.getElementById('taskCards');
@@ -42,15 +43,16 @@ function displayTasks(filterBy) {
     // generate card html for each task by using generateTaskHtml function and map itterator
     // join all the cards html to give us string from array of string
 
-    let assignees  = getTasks().map(tasks =>
-        `<li><a class="dropdown-item" href="#">${tasks.assignedTo}</a></li>`
-    ).reduce((a,b) => { if (a.indexOf(b) < 0 ) a.push(b); return a;},[]).join('');
+    let assignees = getTasks().map(tasks => `<li><a class="dropdown-item" href="#">${tasks.assignedTo}</a></li>`).reduce((a, b) => {
+        if (a.indexOf(b) < 0) a.push(b);
+        return a;
+    }, []).join('');
     assigneeDropdown.innerHTML = assignees;
 
-    if(filterBy) {
-        const filteredTasks = getTasks().filter(task => task.status === filterBy);
-        if(filteredTasks.length > 0) {
-            taskContainer.innerHTML = getTasks().filter(task => task.status === filterBy).map(generateTaskHtml).join('');
+    if (filterBy) {
+        const filteredTasks = getTasks().filter(task => task.status === filterBy || task.assignedTo === filterBy);
+        if (filteredTasks.length > 0) {
+            taskContainer.innerHTML = getTasks().filter(task => task.status === filterBy || task.assignedTo === filterBy).map(generateTaskHtml).join('');
         } else {
             taskContainer.innerHTML = `<div id="error-popup" class="popup">
                             <div class="popup-content">
@@ -59,7 +61,7 @@ function displayTasks(filterBy) {
                             </div>
                         </div>`;
             document.getElementById("error-popup").classList.add("show");
-            document.getElementById("closePopup").addEventListener('click', ()=> {
+            document.getElementById("closePopup").addEventListener('click', () => {
                 document.getElementById("error-popup").classList.remove("show");
                 taskContainer.innerHTML = getTasks().map(generateTaskHtml).join('');
             });
@@ -82,12 +84,18 @@ function displayTasks(filterBy) {
         item.addEventListener('click', filterTasksByStatus)
     });
 
+    document.querySelectorAll('.dropdown-menu.assigned-to li a').forEach(item => {
+        item.addEventListener('click', filterTasksByAssignee)
+    });
+
     document.querySelectorAll('.save-btn').forEach(item => {
         item.addEventListener('click', activeSaveButton)
     });
+
     document.querySelectorAll('.cancel-btn').forEach(item => {
         item.addEventListener('click', activeCancelButton)
     });
+
     document.querySelectorAll('.mark-as-done').forEach(item => {
         item.addEventListener('click', markAsDone)
     });
@@ -99,53 +107,49 @@ function displayTasks(filterBy) {
 function generateTaskHtml(task) {
     return `<div class="col-md-6 col-lg-4 col-12" id="${task.id}-original">  
                         <div class="card">
-                        <div class="change">
-                        <span class="material-symbols-outlined avatar" title="${task.assignedTo}">person</span>
-                        </div>
-                        <div class="card-body">
-                                <h5 class="card-title">${task.name}</h5>
-                                <h6 class="card-subtitle mb-2 text-body-secondary">${task.status.toUpperCase()}</h6>
-                                <p class="card-text"> ${task.description}</p>
-                                <label>${task.assignedTo}</label>
-                                </br>
-                                <label>${task.dueDate}</label>
-                                <div style="display:${(task.status === "done") ? "none" : "block"}"></br></br> 
-                                Progress <div class="progress" role="progressbar" aria-label="Default striped example" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar progress-bar-striped" style="width: ${task.status === "in-progress" ? 25 : 0 || task.status === "review" ? 75 : 0}%">
-                                    ${task.status === "in-progress" ? 25 : 0 || task.status === "review" ? 75 : 0}%</div>
-                                </div>
-                                <br>
-                                <br>
-                                <span class="material-symbols-outlined delete-btn" id="${task.id}">delete</span>
-                                <span class="material-symbols-outlined edit-btn" id="${task.id}" >stylus</span>
-                                <span class="material-symbols-outlined mark-as-done" title="Mark as done" id="${task.id}">done</span>
-                                </div>
+                            <div class="change">
+                                <span class="material-symbols-outlined avatar" title="${task.assignedTo}">person</span>
                             </div>
-                            
+                            <div class="card-body">
+                                    <h5 class="card-title">${task.name}</h5>
+                                    <h6 class="card-subtitle mb-2 text-body-secondary">${task.status.toUpperCase()}</h6>
+                                    <p class="card-text"> ${task.description}</p>
+                                    <label>${task.assignedTo}</label>
+                                    </br>
+                                    <label>${task.dueDate}</label>
+                                    <div style="display:${(task.status === "done") ? "none" : "block"}"></br></br> 
+                                        Progress 
+                                        <div class="progress" role="progressbar" aria-label="Default striped example" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar progress-bar-striped" style="width: ${task.status === "in-progress" ? 25 : 0 || task.status === "review" ? 75 : 0}%">
+                                                ${task.status === "in-progress" ? 25 : 0 || task.status === "review" ? 75 : 0}%
+                                            </div>
+                                        </div>
+                                        <br>
+                                        <br>
+                                        <span class="material-symbols-outlined delete-btn" id="${task.id}">delete</span>
+                                        <span class="material-symbols-outlined edit-btn" id="${task.id}" >stylus</span>
+                                        <span class="material-symbols-outlined mark-as-done" title="Mark as done" id="${task.id}">done</span>
+                                    </div>
+                            </div>
                         </div>
-                    </div>`
-        +
-        `<div class="col-md-6 col-lg-4 col-12" id="${task.id}-editable" style="display:none">  
+            </div>`
+        + `<div class="col-md-6 col-lg-4 col-12" id="${task.id}-editable" style="display:none">  
                         <div class="card pt-3">
-                        <div class="change">
-
-                        <span class="material-symbols-outlined save-btn" id="${task.id}">save</span>
-                        <span class="material-symbols-outlined cancel-btn" id="${task.id}">cancel</span>
-                        
-                        </div>
-                        <div class="card-body">
-                                <input id="${task.id}-name" value="${task.name}"  type="text">
-                                <input id="${task.id}-status" value="${task.status}">
-                                <input id="${task.id}-description" type="text" value="${task.description}"> 
-                                <input id="${task.id}-assignedTo" type="text" value="${task.assignedTo}">
-                                <input id="${task.id}-dueDate" type="text" value="${task.dueDate}">
+                            <div class="change">
+                                <span class="material-symbols-outlined save-btn" id="${task.id}">save</span>
+                                <span class="material-symbols-outlined cancel-btn" id="${task.id}">cancel</span>
                             </div>
-                            
+                            <div class="card-body">
+                                    <input id="${task.id}-name" value="${task.name}"  type="text">
+                                    <input id="${task.id}-status" value="${task.status}">
+                                    <input id="${task.id}-description" type="text" value="${task.description}"> 
+                                    <input id="${task.id}-assignedTo" type="text" value="${task.assignedTo}">
+                                    <input id="${task.id}-dueDate" type="text" value="${task.dueDate}">
+                            </div>
                         </div>
-                    </div>`;
+            </div>`;
 
 }
-
 
 populateTasks();
 displayTasks();
@@ -178,7 +182,7 @@ const addNewTask = () => {
     //  add the new task to the local array then set the changes to the local storage, then display on UI
     if (validInputs) {
         let givenDueDateArray = userDueDate.value.split('-');
-        const userNewTask = createTask(userName.value, userDescription.value, userAssignTo.value,  givenDueDateArray[2] +"/" + givenDueDateArray[1] + "/" + givenDueDateArray[0], userStatus.value);
+        const userNewTask = createTask(userName.value, userDescription.value, userAssignTo.value, givenDueDateArray[2] + "/" + givenDueDateArray[1] + "/" + givenDueDateArray[0], userStatus.value);
         let tasks = getTasks();
         tasks.push(userNewTask);
         setTasks(tasks);
@@ -189,7 +193,6 @@ const addNewTask = () => {
 
 
 const clearForm = () => {
-
     invalidName.innerHTML = "";
     invalidDescription.innerHTML = "";
     invalidAssignedTo.innerHTML = "";
@@ -205,12 +208,9 @@ createButton.addEventListener('click', addNewTask);
 // delete button
 
 function activeDeleteButton(event) {
-
     // find the index of task which is clicked then if the value is the same as id of task,
     let tasks = getTasks();
-    const index = tasks.findIndex(task => task.id == event.target.id);
-    console.log(event.target.id);
-    console.log(index);
+    const index = tasks.findIndex(task => task.id === event.target.id);
     // then remove it from the task array
     tasks.splice(index, 1);
     setTasks(tasks);
@@ -222,32 +222,27 @@ function activeDeleteButton(event) {
 // edit button
 function activeEditButton(event) {
     const taskId = event.target.id;
-    // `${taskId}-original`
-    // taskId + '-original'
     document.getElementById(`${taskId}-original`).style.display = 'none';
     document.getElementById(`${taskId}-editable`).style.display = 'block';
-    console.log('check');
 }
 
 function filterTasksByStatus(event) {
-    const filterBy = event.target.getAttribute("value");
-    // `${taskId}-original`
-    // taskId + '-original'
-    displayTasks(filterBy);
-    console.log("filter", filterBy);
+    displayTasks(event.target.getAttribute("value"));
+}
+
+function filterTasksByAssignee(event) {
+    displayTasks(event.target.text);
 }
 
 const resetButton = document.getElementById('reset');
 resetButton.addEventListener('click', clearForm);
 
-
 // save button
 function activeSaveButton(event) {
     const taskId = event.target.id;
 
-    // console.log('hgkhikl');
     let tasks = getTasks();
-    const index = tasks.findIndex(task => task.id == event.target.id);
+    const index = tasks.findIndex(task => task.id === event.target.id);
     const saveName = document.getElementById(`${taskId}-name`).value
     const saveStatus = document.getElementById(`${taskId}-status`).value
     const saveDescription = document.getElementById(`${taskId}-description`).value
@@ -261,18 +256,17 @@ function activeSaveButton(event) {
     tasks[index]._assignedTo = saveAssignedTo
     tasks[index]._dueDate = saveDueDate
 
-
     setTasks(tasks);
     displayTasks();
 }
+
 // cancel button
 function activeCancelButton(event) {
     const taskId = event.target.id;
     document.getElementById(`${taskId}-original`).style.display = 'block';
     document.getElementById(`${taskId}-editable`).style.display = 'none';
-    // console.log('check');
-
 }
+
 // get tasks array from local storage
 function getTasks() {
     let get = localStorage.getItem("cards");
@@ -282,19 +276,13 @@ function getTasks() {
 
 // store tasks array to local storage
 function setTasks(input) {
-    let stInput = JSON.stringify(input);
-    localStorage.setItem("cards", stInput);
+    localStorage.setItem("cards", JSON.stringify(input));
 }
 
-
 // mark as done
-
 function markAsDone(event) {
-
     let tasks = getTasks();
-    const index = tasks.findIndex(task => task.id == event.target.id);
-    // console.log(index);
-    tasks[index]._status = "done";
+    tasks[tasks.findIndex(task => task.id === event.target.id)]._status = "done";
     setTasks(tasks);
     displayTasks();
 }
